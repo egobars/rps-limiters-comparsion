@@ -1,0 +1,8 @@
+add_library(workloads STATIC
+    workload_base.cpp
+    workload_base.h
+)
+
+target_include_directories(workloads PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_subdirectory(workload_static) 
