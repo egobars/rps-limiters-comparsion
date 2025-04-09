@@ -1,7 +1,10 @@
 #include "worker/worker.h"
+#include "pipe/pipe.h"
+#include "../common/common.h"
 
-#include <HTTPRequest.hpp>
+#include <thread>
 
+/* http server
 class Server;
 
 class Handle : public httpserver::http_resource {
@@ -34,4 +37,29 @@ private:
     std::unique_ptr<Handle> handle_resource_;
     std::vector<WorkerServer> workers_;
     std::vector<uint> workers_ports_;
+};
+*/
+
+class Server {
+public:
+    Server(Pipe<Request>::PipeReader& pipe_reader, Algorithm* algorithm, uint workers_number = 1);
+
+    void start() {
+        running_ = true;
+        std::thread server_thread([this]() {
+            while (running_) {
+                Request request = pipe_reader_.read();
+                // Обработка запроса
+            }
+        });
+    }
+
+    void stop() {
+        running_ = false;
+    }
+
+private:
+    Pipe<Request>::PipeReader pipe_reader_;
+    Algorithm* algorithm_;
+    bool running_ = false;
 };

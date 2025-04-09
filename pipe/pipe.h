@@ -1,5 +1,3 @@
-#include "common/common.h"
-
 #include <mutex>
 #include <memory>
 
@@ -12,6 +10,11 @@ public:
             : pipe_(pipe) {
         }
 
+        bool is_empty() {
+            std::lock_guard<std::mutex> lock(pipe_->mutex_);
+            return pipe_->queue_.empty();
+        }
+
         Item read() {
             std::lock_guard<std::mutex> lock(pipe_->mutex_);
             Item item = pipe_->queue_.front();
@@ -19,15 +22,40 @@ public:
             return item;
         }
 
+        Pipe<Item>* GetPipe() {
+            return pipe_.get();
+        }
+
     private:
         std::shared_ptr<Pipe<Item>> pipe_;
     };
 
     class PipeWriter {
+    public:
+        PipeWriter(std::shared_ptr<Pipe<Item>> pipe)
+            : pipe_(pipe) {
+        }
 
+        void write(const Item& item) {
+            std::lock_guard<std::mutex> lock(pipe_->mutex_);
+            pipe_->queue_.push(item);
+        }
+
+        Pipe<Item>* GetPipe() {
+            return pipe_.get();
+        }
+
+    private:
+        std::shared_ptr<Pipe<Item>> pipe_;
     };
 
     Pipe();
+
+    PipeReader GetReader();
+
+    PipeWriter GetWriter();
+
+    size_t GetSize();
 
 private:
     std::mutex mutex_;

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+/* http server worker handle
 std::shared_ptr<httpserver::http_response> WorkerHandle::render(const httpserver::http_request& req) {
     std::string id_arg(req.get_arg("id"));
     uint id = atoi(id_arg.c_str());
@@ -21,3 +22,4 @@ WorkerServer::WorkerServer(uint port, Algorithm* algorithm) {
 
     algorithm_ = std::move(algorithm->clone());
 }
+*/
