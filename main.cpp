@@ -25,7 +25,7 @@ int main() {
     Server server(request_reader, algorithm, logs_journal);
     server.start();
     
-    WorkloadStatic workload(5, 1000);
+    WorkloadStatic workload(10, 1000);
     Sender sender(&workload, request_writer);
     sender.start_execution();
 

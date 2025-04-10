@@ -49,10 +49,11 @@ void Sender::start_execution() {
     );
 
     for (uint current_rps : rps) {
+        auto end_second_time_ms = std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1000;
         while (current_rps > 0) {
             send_request();
             auto current_time_ms = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
-            auto remaining_time = 1000 - (current_time_ms % 1000);
+            auto remaining_time = std::max(static_cast<long>(0), end_second_time_ms - current_time_ms);
             std::this_thread::sleep_for(std::chrono::milliseconds(remaining_time / current_rps));
             --current_rps;
         }
