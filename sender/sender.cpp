@@ -43,12 +43,10 @@ void Sender::send_request() {
 void Sender::start_execution() {
     std::vector<uint> rps = workload_->generate_rps();
 
-    std::cout << std::chrono::system_clock::now().time_since_epoch().count() / 1000000 << std::endl;
     time_t start_from = time(NULL) + 1;
     std::this_thread::sleep_until(
         std::chrono::system_clock::from_time_t(start_from)
     );
-    std::cout << std::chrono::system_clock::now().time_since_epoch().count() / 1000000 << std::endl;
 
     for (uint current_rps : rps) {
         while (current_rps > 0) {
@@ -57,7 +55,6 @@ void Sender::start_execution() {
             auto remaining_time = 1000 - (current_time_ms % 1000);
             std::this_thread::sleep_for(std::chrono::milliseconds(remaining_time / current_rps));
             --current_rps;
-            std::cout << std::chrono::system_clock::now().time_since_epoch().count() / 1000000 << std::endl;
         }
     }
 }

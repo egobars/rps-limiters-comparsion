@@ -2,7 +2,7 @@
 
 class AlgorithmMock : public Algorithm {
 public:
-    bool check_request(uint, std::time_t) override {
+    bool check_request(Request& /*request*/) override {
         return true;
     }
 

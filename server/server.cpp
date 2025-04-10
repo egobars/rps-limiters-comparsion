@@ -1,5 +1,6 @@
 #include "server.h"
 
+/* http server
 std::shared_ptr<httpserver::http_response> Handle::render(const httpserver::http_request& req) {
     std::string id_arg(req.get_arg("id"));
     uint id = atoi(id_arg.c_str());
@@ -23,4 +24,22 @@ Server::Server(uint port, Algorithm* algorithm, uint workers_number) {
     }
     handle_resource_ = std::make_unique<Handle>(this);
     web_server_->register_resource("/", handle_resource_.get());
+}
+*/
+
+Server::Server(Pipe<Request>::PipeReader& pipe_reader, std::shared_ptr<Algorithm> algorithm, std::shared_ptr<LogsJournal> logs_journal, uint workers_number) 
+    : pipe_reader_(pipe_reader)
+    , algorithm_(algorithm)
+    , logs_journal_(logs_journal) {
+    for (uint i = 0; i < workers_number; ++i) {
+        auto pipe_to_worker = std::make_shared<Pipe<Request>>();
+        auto pipe_from_worker = std::make_shared<Pipe<Response>>();
+        workers_readers_.push_back(pipe_from_worker->GetReader());
+        workers_writers_.push_back(pipe_to_worker->GetWriter());
+        workers_.push_back(std::make_unique<Worker>(
+            pipe_to_worker->GetReader(), 
+            pipe_from_worker->GetWriter(), 
+            algorithm_
+        ));
+    }
 }

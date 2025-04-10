@@ -3,6 +3,9 @@
 #include "../../common/common.h"
 
 #include <thread>
+#include <optional>
+#include <ctime>
+#include <iostream>
 
 /* http server worker
 class WorkerServer;
@@ -37,30 +40,34 @@ private:
 
 class Worker {
 public:
-    Worker(Pipe<Request>::PipeReader& pipe_reader, Pipe<Request>::PipeWriter& pipe_writer, Algorithm* algorithm);
+    Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, std::shared_ptr<Algorithm> algorithm);
 
     void start() {
         running_ = true;
-        worker_thread_ = std::thread([this]() {
+        worker_thread_ = std::make_unique<std::thread>([this]() {
             while (running_) {
-                if (pipe_reader_.is_empty()) {
+                auto request = pipe_reader_.read();
+                if (!request) {
                     continue;
                 }
-                Request request = pipe_reader_.read();
-                // Обработка запроса
+
+                bool result = algorithm_->check_request(request.value());
+                auto val = request.value();
+                Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result);
+                pipe_writer_.write(response);
             }
         });
     }
 
     void stop() {
         running_ = false;
-        worker_thread_.join();
+        worker_thread_->join();
     }
 
 private:
-    std::unique_ptr<Algorithm> algorithm_;
-    Pipe<Request>::PipeReader& pipe_reader_;
-    Pipe<Request>::PipeWriter& pipe_writer_;
+    std::shared_ptr<Algorithm> algorithm_;
+    Pipe<Request>::PipeReader pipe_reader_;
+    Pipe<Response>::PipeWriter pipe_writer_;
     bool running_ = false;
-    std::thread worker_thread_;
+    std::unique_ptr<std::thread> worker_thread_;
 };

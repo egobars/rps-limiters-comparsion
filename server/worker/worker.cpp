@@ -23,3 +23,9 @@ WorkerServer::WorkerServer(uint port, Algorithm* algorithm) {
     algorithm_ = std::move(algorithm->clone());
 }
 */
+
+Worker::Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, std::shared_ptr<Algorithm> algorithm)
+    : pipe_reader_(pipe_reader)
+    , pipe_writer_(pipe_writer)
+    , algorithm_(algorithm) {
+}
