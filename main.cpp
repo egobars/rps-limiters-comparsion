@@ -5,6 +5,7 @@
 #include "sender/sender.h"
 #include "pipe/pipe.h"
 #include "metrics_aggregator/metrics_aggregator_rps/metrics_aggregator_rps.h"
+#include "metrics_aggregator/metrics_aggregator_infly/metrics_aggregator_infly.h"
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
 #include <iostream>
@@ -44,7 +45,7 @@ int main() {
     server.wait();
     server.stop();
 
-    auto metrics_aggregator = std::make_shared<MetricsAggregatorRPS>();
+    auto metrics_aggregator = std::make_shared<MetricsAggregatorInfly>();
     metrics_aggregator->aggregate(*logs_journal);
 
     return 0;
