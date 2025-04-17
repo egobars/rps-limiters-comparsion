@@ -40,7 +40,7 @@ private:
 
 class Worker {
 public:
-    Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, std::shared_ptr<Algorithm> algorithm);
+    Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, Algorithm* algorithm, uint id);
 
     void start() {
         running_ = true;
@@ -65,7 +65,8 @@ public:
     }
 
 private:
-    std::shared_ptr<Algorithm> algorithm_;
+    Algorithm* algorithm_;
+    uint id_;
     Pipe<Request>::PipeReader pipe_reader_;
     Pipe<Response>::PipeWriter pipe_writer_;
     bool running_ = false;

@@ -24,8 +24,9 @@ WorkerServer::WorkerServer(uint port, Algorithm* algorithm) {
 }
 */
 
-Worker::Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, std::shared_ptr<Algorithm> algorithm)
+Worker::Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter pipe_writer, Algorithm* algorithm, uint id)
     : pipe_reader_(pipe_reader)
     , pipe_writer_(pipe_writer)
-    , algorithm_(algorithm) {
+    , algorithm_(algorithm)
+    , id_(id) {
 }

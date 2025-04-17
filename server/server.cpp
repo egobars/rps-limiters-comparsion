@@ -27,10 +27,12 @@ Server::Server(uint port, Algorithm* algorithm, uint workers_number) {
 }
 */
 
-Server::Server(Pipe<Request>::PipeReader& pipe_reader, std::shared_ptr<Algorithm> algorithm, std::shared_ptr<LogsJournal> logs_journal, uint workers_number) 
+Server::Server(Pipe<Request>::PipeReader& pipe_reader, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number) 
     : pipe_reader_(pipe_reader)
-    , algorithm_(algorithm)
-    , logs_journal_(logs_journal) {
+    , logs_journal_(logs_journal)
+    , algorithms_(algorithms) {
+    gen = std::mt19937(rd());
+    dist = std::uniform_int_distribution<uint>(0, workers_number - 1);
     for (uint i = 0; i < workers_number; ++i) {
         auto pipe_to_worker = std::make_shared<Pipe<Request>>();
         auto pipe_from_worker = std::make_shared<Pipe<Response>>();
@@ -39,7 +41,8 @@ Server::Server(Pipe<Request>::PipeReader& pipe_reader, std::shared_ptr<Algorithm
         workers_.push_back(std::make_unique<Worker>(
             pipe_to_worker->GetReader(), 
             pipe_from_worker->GetWriter(), 
-            algorithm_
+            algorithms_->at(i),
+            i
         ));
     }
 }

@@ -41,21 +41,21 @@ void Sender::send_request() {
 */
 
 void Sender::start_execution() {
-    std::vector<uint> rps = workload_->generate_rps();
+    std::vector<uint> requests_per_10ms = workload_->generate_requests_per_10ms();
 
     time_t start_from = time(NULL) + 1;
     std::this_thread::sleep_until(
         std::chrono::system_clock::from_time_t(start_from)
     );
 
-    for (uint current_rps : rps) {
-        auto end_second_time_ms = std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1000;
-        while (current_rps > 0) {
+    for (uint current_requests_per_10ms : requests_per_10ms) {
+        auto end_next_period_ms = std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 10;
+        while (current_requests_per_10ms > 0) {
             send_request();
             auto current_time_ms = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
-            auto remaining_time = std::max(static_cast<long>(0), end_second_time_ms - current_time_ms);
-            std::this_thread::sleep_for(std::chrono::milliseconds(remaining_time / current_rps));
-            --current_rps;
+            auto remaining_time = std::max(static_cast<long>(0), end_next_period_ms - current_time_ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(remaining_time / current_requests_per_10ms));
+            --current_requests_per_10ms;
         }
     }
 }

@@ -8,6 +8,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <random>
 
 /* http server
 class Server;
@@ -47,7 +48,7 @@ private:
 
 class Server {
 public:
-    Server(Pipe<Request>::PipeReader& pipe_reader, std::shared_ptr<Algorithm> algorithm, std::shared_ptr<LogsJournal> logs_journal, uint workers_number = 1);
+    Server(Pipe<Request>::PipeReader& pipe_reader, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number = 1);
 
     void start() {
         for (auto& worker : workers_) {
@@ -58,7 +59,8 @@ public:
                 auto request_from_client = pipe_reader_.read();
                 if (request_from_client) {
                     ++requests_received_;
-                    auto request_to_worker = workers_writers_[request_from_client.value().id() % workers_writers_.size()];
+                    uint worker_index = dist(gen);
+                    auto request_to_worker = workers_writers_[worker_index];
                     request_to_worker.write(request_from_client.value());
                 }
 
@@ -92,7 +94,7 @@ public:
 
 private:
     Pipe<Request>::PipeReader& pipe_reader_;
-    std::shared_ptr<Algorithm> algorithm_;
+    std::vector<Algorithm*>* algorithms_;
     std::shared_ptr<LogsJournal> logs_journal_;
     bool no_more_requests_ = false;
     std::unique_ptr<std::thread> server_thread_;
@@ -101,4 +103,7 @@ private:
     std::vector<Pipe<Response>::PipeReader> workers_readers_;
     size_t requests_received_ = 0;
     size_t requests_processed_ = 0;
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_int_distribution<uint> dist;
 };
