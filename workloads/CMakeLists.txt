@@ -7,3 +7,4 @@ target_include_directories(workloads PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(workload_static)
 add_subdirectory(workload_parabolic)
+add_subdirectory(workload_sinusoid)

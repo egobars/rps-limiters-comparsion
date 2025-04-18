@@ -24,4 +24,4 @@ add_subdirectory(sender)
 
 add_executable(main main.cpp)
 
-target_link_libraries(main PRIVATE server workloads workload_static workload_parabolic sender)
+target_link_libraries(main PRIVATE server workloads workload_static workload_parabolic workload_sinusoid sender)

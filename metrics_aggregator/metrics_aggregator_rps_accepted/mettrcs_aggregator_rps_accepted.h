@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 
-class MetricsAggregatorRPS : public MetricsAggregatorBase {
+class MetricsAggregatorRPSAccepted : public MetricsAggregatorBase {
 public:
     void aggregate(const LogsJournal& journal) override {
         auto logs = journal.get_logs();
@@ -15,7 +15,9 @@ public:
             if (log.timestamp / 10 >= start_time + 10 * 100) {
                 break;
             }
-            requests_per_10ms[log.timestamp / 10]++;
+            if (log.is_allowed) {
+                requests_per_10ms[log.timestamp / 10]++;
+            }
         }
         std::vector<std::pair<time_t, uint64_t>> rps_vector(10 * 100);
         size_t current_sum = 0;
@@ -30,7 +32,7 @@ public:
             return a.first < b.first;
         });
 
-        std::ofstream output_file("../artifacts/rps.txt");
+        std::ofstream output_file("../artifacts/rps_accepted.txt");
         size_t i = 0;
         for (auto [timestamp, _] : rps_vector) {
             output_file << (double)(timestamp - start_time) / 100;

@@ -2,9 +2,11 @@
 #include "algorithms/algorithm_mock/algorithm_mock.h"
 #include "workloads/workload_static/workload_static.h"
 #include "workloads/workload_parabolic/workload_parabolic.h"
+#include "workloads/workload_sinusoid/workload_sinusoid.h"
 #include "sender/sender.h"
 #include "pipe/pipe.h"
 #include "metrics_aggregator/metrics_aggregator_rps/metrics_aggregator_rps.h"
+#include "metrics_aggregator/metrics_aggregator_rps_accepted/mettrcs_aggregator_rps_accepted.h"
 #include "metrics_aggregator/metrics_aggregator_infly/metrics_aggregator_infly.h"
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
@@ -31,22 +33,25 @@ int main() {
     // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
     std::vector<TokenBucketCentralized*> algorithms;
-    algorithms.push_back(new TokenBucketCentralized(800, 800));
+    algorithms.push_back(new TokenBucketCentralized(1000, 1000));
     std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
 
     std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
     Server server(request_reader, &algorithm_pointers, logs_journal, 1);
     server.start();
 
-    WorkloadStatic workload(10, 1200);
+    WorkloadSinusoid workload(10, 500, 2000);
     Sender sender(&workload, request_writer);
     sender.start_execution();
 
     server.wait();
     server.stop();
 
-    auto metrics_aggregator = std::make_shared<MetricsAggregatorInfly>();
+    auto metrics_aggregator = std::make_shared<MetricsAggregatorRPS>();
     metrics_aggregator->aggregate(*logs_journal);
+
+    auto metrics_aggregator_accepted = std::make_shared<MetricsAggregatorRPSAccepted>();
+    metrics_aggregator_accepted->aggregate(*logs_journal);
 
     return 0;
 }
