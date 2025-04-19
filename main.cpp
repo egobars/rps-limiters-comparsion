@@ -40,7 +40,7 @@ int main() {
     Server server(request_reader, &algorithm_pointers, logs_journal, 1);
     server.start();
 
-    WorkloadSinusoid workload(10, 500, 2000);
+    WorkloadStatic workload(10, 1200);
     Sender sender(&workload, request_writer);
     sender.start_execution();
 
@@ -50,8 +50,8 @@ int main() {
     auto metrics_aggregator = std::make_shared<MetricsAggregatorRPS>();
     metrics_aggregator->aggregate(*logs_journal);
 
-    auto metrics_aggregator_accepted = std::make_shared<MetricsAggregatorRPSAccepted>();
-    metrics_aggregator_accepted->aggregate(*logs_journal);
+    auto metrics_aggregator_infly = std::make_shared<MetricsAggregatorInfly>();
+    metrics_aggregator_infly->aggregate(*logs_journal);
 
     return 0;
 }

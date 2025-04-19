@@ -9,15 +9,15 @@ class MetricsAggregatorRPS : public MetricsAggregatorBase {
 public:
     void aggregate(const LogsJournal& journal) override {
         auto logs = journal.get_logs();
-        uint64_t start_time = logs[0].timestamp / 10;
+        uint64_t start_time = logs[0].timestamp;
         std::unordered_map<time_t, uint64_t> requests_per_10ms;
         for (auto log : logs) {
-            if (log.timestamp / 10 >= start_time + 10 * 100) {
+            if (log.timestamp >= start_time + 10 * 1000) {
                 break;
             }
-            requests_per_10ms[log.timestamp / 10]++;
+            requests_per_10ms[log.timestamp]++;
         }
-        std::vector<std::pair<time_t, uint64_t>> rps_vector(10 * 100);
+        std::vector<std::pair<time_t, uint64_t>> rps_vector(10 * 1000);
         size_t current_sum = 0;
         for (size_t i = 0; i < rps_vector.size(); ++i) {
             current_sum += requests_per_10ms[start_time + i];
@@ -33,7 +33,7 @@ public:
         std::ofstream output_file("../artifacts/rps.txt");
         size_t i = 0;
         for (auto [timestamp, _] : rps_vector) {
-            output_file << (double)(timestamp - start_time) / 100;
+            output_file << (double)(timestamp - start_time) / 1000;
             if (i != rps_vector.size() - 1) {
                 output_file << " ";
             }

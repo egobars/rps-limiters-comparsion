@@ -7,35 +7,34 @@ class MetricsAggregatorInfly : public MetricsAggregatorBase {
 public:
     void aggregate(const LogsJournal& journal) override {
         auto logs = journal.get_logs();
-        uint64_t start_time = logs[0].timestamp / 10;
-        std::vector<uint64_t> infly_requests_per_timestamp(10 * 100 + 10);
+        uint64_t start_time = logs[0].timestamp;
+        std::vector<uint64_t> infly_requests_per_timestamp(10 * 1000 + 100);
         for (auto log : logs) {
-            if (log.timestamp / 10 >= start_time + 10 * 100) {
+            if (log.timestamp >= start_time + 10 * 1000) {
                 break;
             }
             if (log.is_allowed) {
-                for (int i = 0; i < 10; ++i) {
-                    infly_requests_per_timestamp[log.timestamp / 10 - start_time + i]++;
+                for (int i = 0; i < 100; ++i) {
+                    infly_requests_per_timestamp[log.timestamp - start_time + i]++;
                 }
             }
         }
-        std::cout << "[";
+        std::ofstream output_file("../artifacts/rps_infly.txt");
         for (int i = 0; i < infly_requests_per_timestamp.size(); ++i) {
-            std::cout << (double)(i) / 100;
+            output_file << (double)(i) / 1000;
             if (i < infly_requests_per_timestamp.size() - 1) {
-                std::cout << ", ";
+                output_file << " ";
             }
         }
-        std::cout << "]" << std::endl;
+        output_file << std::endl;
         size_t i = 0;
-        std::cout << "[";
         for (auto count : infly_requests_per_timestamp) {
-            std::cout << count;
+            output_file << count;
             if (i != infly_requests_per_timestamp.size() - 1) {
-                std::cout << ", ";
+                output_file << " ";
             }
             ++i;
         }
-        std::cout << "]" << std::endl;
+        output_file.close();
     }
 };

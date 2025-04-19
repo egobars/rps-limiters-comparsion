@@ -22,11 +22,7 @@ public:
         std::vector<std::pair<time_t, uint64_t>> rps_vector(10 * 100);
         size_t current_sum = 0;
         for (size_t i = 0; i < rps_vector.size(); ++i) {
-            current_sum += requests_per_10ms[start_time + i];
-            if (i >= 100) {
-                current_sum -= requests_per_10ms[start_time + i - 100];
-            }
-            rps_vector[i] = {start_time + i, current_sum};
+            rps_vector[i] = {start_time + i, requests_per_10ms[start_time + i]};
         }
         std::sort(rps_vector.begin(), rps_vector.end(), [](const auto& a, const auto& b) {
             return a.first < b.first;
