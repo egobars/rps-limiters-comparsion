@@ -4,5 +4,5 @@
 
 class MetricsAggregatorBase {
 public:
-    virtual void aggregate(const LogsJournal& journal) = 0;
+    virtual void aggregate(const size_t duration_seconds, const std::vector<std::shared_ptr<LogsJournal>>& journals) = 0;
 };

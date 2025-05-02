@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-class MetricsAggregatorInfly : public MetricsAggregatorBase {
+class MetricsAggregatorInflyOverflow : public MetricsAggregatorBase {
 public:
     void aggregate(const size_t duration_seconds, const std::vector<std::shared_ptr<LogsJournal>>& journals) override {
         std::vector<uint64_t> infly_requests_per_timestamp(duration_seconds * 1000 + 100);
@@ -22,22 +22,13 @@ public:
                 }
             }
         }
-        std::ofstream output_file("../artifacts/rps_infly.txt");
-        for (int i = 0; i < infly_requests_per_timestamp.size(); ++i) {
-            output_file << (double)(i) / 1000;
-            if (i < infly_requests_per_timestamp.size() - 1) {
-                output_file << " ";
+        size_t overflow_metric = 0;
+        for (int i = 1000; i < duration_seconds * 1000; ++i) {
+            double infly_requests = (double) infly_requests_per_timestamp[i] / journals.size();
+            if (infly_requests > 100) {
+                overflow_metric += (infly_requests - 100) * (infly_requests - 100);
             }
         }
-        output_file << std::endl;
-        size_t i = 0;
-        for (auto count : infly_requests_per_timestamp) {
-            output_file << (double) count / journals.size();
-            if (i != infly_requests_per_timestamp.size() - 1) {
-                output_file << " ";
-            }
-            ++i;
-        }
-        output_file.close();
+        std::cout << "Overflow metric: " << overflow_metric << std::endl;
     }
 };

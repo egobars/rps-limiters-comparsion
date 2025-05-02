@@ -6,52 +6,60 @@
 #include "sender/sender.h"
 #include "pipe/pipe.h"
 #include "metrics_aggregator/metrics_aggregator_rps/metrics_aggregator_rps.h"
-#include "metrics_aggregator/metrics_aggregator_rps_accepted/mettrcs_aggregator_rps_accepted.h"
 #include "metrics_aggregator/metrics_aggregator_infly/metrics_aggregator_infly.h"
+#include "metrics_aggregator/metrics_aggregator_infly_overflow/metrics_aggregator_infly_overflow.h"
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
 #include <iostream>
 #include <memory>
 
 int main() {
-    // Создаем общие каналы передачи данных
-    auto request_pipe = std::make_shared<Pipe<Request>>();
-    auto response_pipe = std::make_shared<Pipe<Response>>();
-    
-    auto request_writer = request_pipe->GetWriter();
-    auto request_reader = request_pipe->GetReader();
-    
-    auto response_writer = response_pipe->GetWriter();
-    auto response_reader = response_pipe->GetReader();
-    
-    // Инициализируем компоненты
-    /*std::vector<TokenBucketDecentralized*> algorithms;
-    for (size_t i = 0; i < 10; ++i) {
-        algorithms.push_back(new TokenBucketDecentralized(800, 800, i, &algorithms, 10));
+    std::vector<std::shared_ptr<LogsJournal>> logs_journals;
+    for (int i = 0; i < 10; ++i) {
+        // Создаем общие каналы передачи данных
+        auto request_pipe = std::make_shared<Pipe<Request>>();
+        auto response_pipe = std::make_shared<Pipe<Response>>();
+        
+        auto request_writer = request_pipe->GetWriter();
+        auto request_reader = request_pipe->GetReader();
+        
+        auto response_writer = response_pipe->GetWriter();
+        auto response_reader = response_pipe->GetReader();
+        
+        // Инициализируем компоненты
+        /*std::vector<TokenBucketDecentralized*> algorithms;
+        for (size_t i = 0; i < 10; ++i) {
+            algorithms.push_back(new TokenBucketDecentralized(800, 800, i, &algorithms, 10));
+        }
+        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
+        // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
+
+        std::vector<TokenBucketCentralized*> algorithms;
+        algorithms.push_back(new TokenBucketCentralized(1000, 1000));
+        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
+
+        std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
+        Server server(request_reader, &algorithm_pointers, logs_journal, 1);
+        server.start();
+
+        WorkloadSinusoid workload(10, 400, 1600);
+        Sender sender(&workload, request_writer);
+        sender.start_execution();
+
+        server.wait();
+        server.stop();
+
+        logs_journals.push_back(logs_journal);
     }
-    std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
-    // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
-
-    std::vector<TokenBucketCentralized*> algorithms;
-    algorithms.push_back(new TokenBucketCentralized(1000, 1000));
-    std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
-
-    std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
-    Server server(request_reader, &algorithm_pointers, logs_journal, 1);
-    server.start();
-
-    WorkloadStatic workload(10, 1200);
-    Sender sender(&workload, request_writer);
-    sender.start_execution();
-
-    server.wait();
-    server.stop();
 
     auto metrics_aggregator = std::make_shared<MetricsAggregatorRPS>();
-    metrics_aggregator->aggregate(*logs_journal);
+    metrics_aggregator->aggregate(10, logs_journals);
 
     auto metrics_aggregator_infly = std::make_shared<MetricsAggregatorInfly>();
-    metrics_aggregator_infly->aggregate(*logs_journal);
+    metrics_aggregator_infly->aggregate(10, logs_journals);
+
+    auto metrics_aggregator_infly_overflow = std::make_shared<MetricsAggregatorInflyOverflow>();
+    metrics_aggregator_infly_overflow->aggregate(10, logs_journals);
 
     return 0;
 }

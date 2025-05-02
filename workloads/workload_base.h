@@ -5,5 +5,5 @@
 
 class Workload {
 public:
-    virtual std::vector<uint> generate_requests_per_10ms() = 0;
+    virtual std::vector<uint> generate_requests_per_100ms() = 0;
 };

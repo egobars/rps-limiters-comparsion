@@ -9,7 +9,7 @@ public:
         , rps(rps)
     {}
 
-    std::vector<uint> generate_requests_per_10ms() override;
+    std::vector<uint> generate_requests_per_100ms() override;
 
 private:
     uint duration_seconds;

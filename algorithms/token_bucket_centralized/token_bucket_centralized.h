@@ -29,8 +29,8 @@ public:
 private:
     void refill_bucket() {
         long current_time = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
-        if (current_time - last_refill_time_ > 100) {
-            max_capacity_ = std::min(max_capacity_ + refill_rate_ / 10 * (double)(current_time - last_refill_time_) / 100, current_bucket_size_ + refill_rate_ / 10 * (double)(current_time - last_refill_time_) / 100);
+        if (current_time - last_refill_time_ > 10) {
+            max_capacity_ = std::min(max_capacity_ + refill_rate_ / 100 * (double)(current_time - last_refill_time_) / 10, current_bucket_size_ + refill_rate_ / 100 * (double)(current_time - last_refill_time_) / 10);
             last_refill_time_ = current_time;
         }
     }
