@@ -27,8 +27,9 @@ Server::Server(uint port, Algorithm* algorithm, uint workers_number) {
 }
 */
 
-Server::Server(Pipe<Request>::PipeReader& pipe_reader, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number) 
+Server::Server(Pipe<Request>::PipeReader& pipe_reader, Pipe<Retry>::PipeWriter& pipe_retry_writer, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number) 
     : pipe_reader_(pipe_reader)
+    , pipe_retry_writer_(pipe_retry_writer)
     , logs_journal_(logs_journal)
     , algorithms_(algorithms) {
     gen = std::mt19937(rd());

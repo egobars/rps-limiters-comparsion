@@ -10,22 +10,22 @@
 #include "metrics_aggregator/metrics_aggregator_infly_overflow/metrics_aggregator_infly_overflow.h"
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
+#include "algorithms/token_bucket_simple/token_bucket_simple.h"
 #include <iostream>
 #include <memory>
 
 int main() {
     std::vector<std::shared_ptr<LogsJournal>> logs_journals;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 20; ++i) {
         // Создаем общие каналы передачи данных
         auto request_pipe = std::make_shared<Pipe<Request>>();
-        auto response_pipe = std::make_shared<Pipe<Response>>();
+        auto retry_pipe = std::make_shared<Pipe<Retry>>();
         
         auto request_writer = request_pipe->GetWriter();
         auto request_reader = request_pipe->GetReader();
-        
-        auto response_writer = response_pipe->GetWriter();
-        auto response_reader = response_pipe->GetReader();
-        
+        auto retry_writer = retry_pipe->GetWriter();
+        auto retry_reader = retry_pipe->GetReader();
+
         // Инициализируем компоненты
         /*std::vector<TokenBucketDecentralized*> algorithms;
         for (size_t i = 0; i < 10; ++i) {
@@ -39,11 +39,11 @@ int main() {
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
-        Server server(request_reader, &algorithm_pointers, logs_journal, 1);
+        Server server(request_reader, retry_writer, &algorithm_pointers, logs_journal, 1);
         server.start();
 
-        WorkloadSinusoid workload(10, 400, 1600);
-        Sender sender(&workload, request_writer);
+        WorkloadSinusoid workload(10, 400, 2500);
+        Sender sender(&workload, request_writer, retry_reader);
         sender.start_execution();
 
         server.wait();

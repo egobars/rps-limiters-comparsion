@@ -5,6 +5,9 @@
 #include "../common/common.h"
 
 #include <cstdint>
+#include <thread>
+#include <atomic>
+#include <set>
 
 /* Http server sender
 class Sender {
@@ -26,17 +29,25 @@ private:
 
 class Sender {
 public:
-    Sender(Workload* workload, Pipe<Request>::PipeWriter& pipe_writer)
+    Sender(Workload* workload, Pipe<Request>::PipeWriter& pipe_writer_requests, Pipe<Retry>::PipeReader& pipe_reader_retries)
         : workload_(workload)
-        , pipe_writer_(pipe_writer)
+        , pipe_writer_requests_(pipe_writer_requests)
+        , pipe_reader_retries_(pipe_reader_retries)
+        , is_running_(false)
     {}
 
     void start_execution();
 
 private:
     void send_request();
+    void check_retries();
 
     Workload* workload_;
-    Pipe<Request>::PipeWriter pipe_writer_;
-    uint current_id_ = 0;
+    Pipe<Request>::PipeWriter pipe_writer_requests_;
+    Pipe<Retry>::PipeReader pipe_reader_retries_;
+    std::atomic<uint> current_id_ = 0;
+    uint current_user_ = 0;
+    std::thread retries_thread_;
+    std::atomic<bool> is_running_;
+    std::set<Retry> retries_;
 };

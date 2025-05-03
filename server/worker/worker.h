@@ -53,8 +53,21 @@ public:
 
                 bool result = algorithm_->check_request(request.value());
                 auto val = request.value();
-                Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result);
-                pipe_writer_.write(response);
+                if (result) {
+                    Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, false, val.attempt(), 0);
+                    pipe_writer_.write(response);
+                } else {
+                    /*if (val.attempt() == 0) {
+                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 500);
+                        pipe_writer_.write(response);
+                    } else if (val.attempt() == 1) {
+                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1500);
+                        pipe_writer_.write(response);
+                    } else {*/
+                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, false, val.attempt(), 0);
+                        pipe_writer_.write(response);
+                    //}
+                }
             }
         });
     }

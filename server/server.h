@@ -48,7 +48,7 @@ private:
 
 class Server {
 public:
-    Server(Pipe<Request>::PipeReader& pipe_reader, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number = 1);
+    Server(Pipe<Request>::PipeReader& pipe_reader, Pipe<Retry>::PipeWriter& pipe_retry_writer, std::vector<Algorithm*>* algorithms, std::shared_ptr<LogsJournal> logs_journal, uint workers_number = 1);
 
     void start() {
         for (auto& worker : workers_) {
@@ -69,8 +69,11 @@ public:
                     if (response) {
                         ++requests_processed_;
                         auto val = response.value();
-                        LogLine log_line(std::chrono::system_clock::now().time_since_epoch().count() / 1000000, val.is_allowed(), val.id());
+                        LogLine log_line(std::chrono::system_clock::now().time_since_epoch().count() / 1000000, val.is_allowed(), val.user(), val.id(), val.attempt());
                         logs_journal_->add_log(std::move(log_line));
+                        if (val.is_retry()) {
+                            pipe_retry_writer_.write(Retry(val.id(), val.user(), val.attempt(), val.do_retry_timestamp()));
+                        }
                     }
                 }
             }
@@ -94,6 +97,7 @@ public:
 
 private:
     Pipe<Request>::PipeReader& pipe_reader_;
+    Pipe<Retry>::PipeWriter& pipe_retry_writer_;
     std::vector<Algorithm*>* algorithms_;
     std::shared_ptr<LogsJournal> logs_journal_;
     bool no_more_requests_ = false;

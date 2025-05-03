@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "HTTPRequest.hpp"
 
 
 /* http server sender
@@ -41,6 +40,12 @@ void Sender::send_request() {
 */
 
 void Sender::start_execution() {
+    // Устанавливаем флаг запуска
+    is_running_ = true;
+    
+    // Запускаем поток для проверки повторных запросов
+    retries_thread_ = std::thread(&Sender::check_retries, this);
+    
     std::vector<uint> requests_per_100ms = workload_->generate_requests_per_100ms();
 
     time_t start_from = time(NULL) + 1;
@@ -61,10 +66,36 @@ void Sender::start_execution() {
             --current_requests_per_100ms;
         }
     }
+    
+    // Останавливаем поток проверки повторов
+    is_running_ = false;
+    
+    // Ожидаем завершения потока
+    if (retries_thread_.joinable()) {
+        retries_thread_.join();
+    }
 }
 
 void Sender::send_request() {
-    Request request = Request(current_id_, 0, time(NULL));
-    pipe_writer_.write(request);
+    Request request = Request(current_id_, current_user_, 0, time(NULL));
+    pipe_writer_requests_.write(request);
     ++current_id_;
+    ++current_user_;
+}
+
+void Sender::check_retries() {
+    while (is_running_) {
+        auto retry = pipe_reader_retries_.read();
+        if (retry.has_value()) {
+            auto retry_value = retry.value();
+            retries_.insert(retry_value);
+        }
+        if (retries_.size() > 0 && retries_.begin()->do_retry_timestamp() <= std::chrono::system_clock::now().time_since_epoch().count() / 1000000) {
+            auto retry = *retries_.begin();
+            retries_.erase(retries_.begin());
+            Request request = Request(current_id_, retry.user(), retry.attempt() + 1, time(NULL));
+            pipe_writer_requests_.write(request);
+            ++current_id_;
+        }
+    }
 }

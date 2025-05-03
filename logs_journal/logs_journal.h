@@ -9,13 +9,15 @@
 
 class LogLine {
 public:
-    LogLine(uint64_t timestamp, bool is_allowed, uint user_id)
-        : timestamp(timestamp), is_allowed(is_allowed), user_id(user_id)
+    LogLine(uint64_t timestamp, bool is_allowed, uint user_id, uint request_id, uint attempt)
+        : timestamp(timestamp), is_allowed(is_allowed), user_id(user_id), request_id(request_id), attempt(attempt)
     {}
 
     uint64_t timestamp;
     bool is_allowed;
     uint user_id;
+    uint request_id;
+    uint attempt;
 };
 
 class LogsJournal {
