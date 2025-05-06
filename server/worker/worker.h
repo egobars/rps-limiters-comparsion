@@ -6,6 +6,7 @@
 #include <optional>
 #include <ctime>
 #include <iostream>
+#include <random>
 
 /* http server worker
 class WorkerServer;
@@ -45,7 +46,12 @@ public:
     void start() {
         running_ = true;
         worker_thread_ = std::make_unique<std::thread>([this]() {
+            int i = 0;
             while (running_) {
+                /*auto response = algorithm_->get_response();
+                if (response) {
+                    pipe_writer_.write(response.value());
+                }*/
                 auto request = pipe_reader_.read();
                 if (!request) {
                     continue;
@@ -53,21 +59,22 @@ public:
 
                 bool result = algorithm_->check_request(request.value());
                 auto val = request.value();
-                if (result) {
-                    Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, false, val.attempt(), 0);
+                //if (result) {
+                    Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
                     pipe_writer_.write(response);
-                } else {
-                    /*if (val.attempt() == 0) {
-                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 500);
+                /*} else {
+                    if (val.attempt() == 0) {
+                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 500 + dist_(gen_));
                         pipe_writer_.write(response);
                     } else if (val.attempt() == 1) {
-                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1500);
+                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1500 + dist_(gen_));
                         pipe_writer_.write(response);
-                    } else {*/
-                        Response response(val.id(), val.user(), val.timestamp(), std::time(nullptr), result, false, val.attempt(), 0);
+                    } else {
+                        Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
                         pipe_writer_.write(response);
-                    //}
-                }
+                    }
+                }*/
+                // algorithm_->add_request(request.value());
             }
         });
     }
@@ -84,4 +91,7 @@ private:
     Pipe<Response>::PipeWriter pipe_writer_;
     bool running_ = false;
     std::unique_ptr<std::thread> worker_thread_;
+    std::random_device rd_;
+    std::mt19937 gen_;
+    std::uniform_int_distribution<uint> dist_;
 };

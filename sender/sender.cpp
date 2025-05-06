@@ -77,7 +77,7 @@ void Sender::start_execution() {
 }
 
 void Sender::send_request() {
-    Request request = Request(current_id_, current_user_, 0, time(NULL));
+    Request request = Request(current_id_, current_user_, 0, std::chrono::system_clock::now().time_since_epoch().count() / 1000000);
     pipe_writer_requests_.write(request);
     ++current_id_;
     ++current_user_;
@@ -93,7 +93,7 @@ void Sender::check_retries() {
         if (retries_.size() > 0 && retries_.begin()->do_retry_timestamp() <= std::chrono::system_clock::now().time_since_epoch().count() / 1000000) {
             auto retry = *retries_.begin();
             retries_.erase(retries_.begin());
-            Request request = Request(current_id_, retry.user(), retry.attempt() + 1, time(NULL));
+            Request request = Request(current_id_, retry.user(), retry.attempt() + 1, std::chrono::system_clock::now().time_since_epoch().count() / 1000000);
             pipe_writer_requests_.write(request);
             ++current_id_;
         }

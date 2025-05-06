@@ -69,7 +69,7 @@ public:
                     if (response) {
                         ++requests_processed_;
                         auto val = response.value();
-                        LogLine log_line(std::chrono::system_clock::now().time_since_epoch().count() / 1000000, val.is_allowed(), val.user(), val.id(), val.attempt());
+                        LogLine log_line(std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response.value().request_timestamp(), val.is_allowed(), val.user(), val.id(), val.attempt());
                         logs_journal_->add_log(std::move(log_line));
                         if (val.is_retry()) {
                             pipe_retry_writer_.write(Retry(val.id(), val.user(), val.attempt(), val.do_retry_timestamp()));
@@ -89,7 +89,6 @@ public:
 
     void stop() {
         wait();
-
         for (auto& worker : workers_) {
             worker->stop();
         }

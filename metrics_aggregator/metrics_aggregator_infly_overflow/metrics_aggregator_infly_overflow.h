@@ -25,8 +25,8 @@ public:
         size_t overflow_metric = 0;
         for (int i = 1000; i < duration_seconds * 1000; ++i) {
             double infly_requests = (double) infly_requests_per_timestamp[i] / journals.size();
-            if (infly_requests > 100) {
-                overflow_metric += (infly_requests - 100) * (infly_requests - 100);
+            if (infly_requests > 110) {
+                overflow_metric += (infly_requests - 110) * (infly_requests - 110);
             }
         }
         std::cout << "Overflow metric: " << overflow_metric << std::endl;

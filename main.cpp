@@ -3,20 +3,24 @@
 #include "workloads/workload_static/workload_static.h"
 #include "workloads/workload_parabolic/workload_parabolic.h"
 #include "workloads/workload_sinusoid/workload_sinusoid.h"
+#include "workloads/workload_spikes/workload_spikes.h"
 #include "sender/sender.h"
 #include "pipe/pipe.h"
 #include "metrics_aggregator/metrics_aggregator_rps/metrics_aggregator_rps.h"
 #include "metrics_aggregator/metrics_aggregator_infly/metrics_aggregator_infly.h"
 #include "metrics_aggregator/metrics_aggregator_infly_overflow/metrics_aggregator_infly_overflow.h"
+#include "metrics_aggregator/metrics_aggregator_delay/metrics_aggregator_delay.h"
+#include "metrics_aggregator/metrics_aggregator_user/metrics_aggregator_user.h"
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
 #include "algorithms/token_bucket_simple/token_bucket_simple.h"
+#include "algorithms/token_bucket_centralized_queue/token_bucket_centralized_queue.h"
 #include <iostream>
 #include <memory>
 
 int main() {
     std::vector<std::shared_ptr<LogsJournal>> logs_journals;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 10; ++i) {
         // Создаем общие каналы передачи данных
         auto request_pipe = std::make_shared<Pipe<Request>>();
         auto retry_pipe = std::make_shared<Pipe<Retry>>();
@@ -28,14 +32,14 @@ int main() {
 
         // Инициализируем компоненты
         /*std::vector<TokenBucketDecentralized*> algorithms;
-        for (size_t i = 0; i < 10; ++i) {
-            algorithms.push_back(new TokenBucketDecentralized(800, 800, i, &algorithms, 10));
+        for (size_t i = 0; i < 2; ++i) {
+            algorithms.push_back(new TokenBucketDecentralized(1100, 1100, i, &algorithms, 2));
         }
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
         // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
-        std::vector<TokenBucketCentralized*> algorithms;
-        algorithms.push_back(new TokenBucketCentralized(1000, 1000));
+        std::vector<TokenBucketSimple*> algorithms;
+        algorithms.push_back(new TokenBucketSimple(10, 1000));
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
@@ -60,6 +64,12 @@ int main() {
 
     auto metrics_aggregator_infly_overflow = std::make_shared<MetricsAggregatorInflyOverflow>();
     metrics_aggregator_infly_overflow->aggregate(10, logs_journals);
+
+    auto metrics_aggregator_delay = std::make_shared<MetricsAggregatorDelay>();
+    metrics_aggregator_delay->aggregate(10, logs_journals);
+
+    auto metrics_aggregator_user = std::make_shared<MetricsAggregatorUser>();
+    metrics_aggregator_user->aggregate(10, logs_journals);
 
     return 0;
 }

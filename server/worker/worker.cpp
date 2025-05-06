@@ -28,5 +28,8 @@ Worker::Worker(Pipe<Request>::PipeReader pipe_reader, Pipe<Response>::PipeWriter
     : pipe_reader_(pipe_reader)
     , pipe_writer_(pipe_writer)
     , algorithm_(algorithm)
-    , id_(id) {
+    , id_(id)
+    , rd_()
+    , gen_(rd_())
+    , dist_(0, 0) {
 }
