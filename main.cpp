@@ -14,7 +14,8 @@
 #include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
 #include "algorithms/token_bucket_simple/token_bucket_simple.h"
-#include "algorithms/token_bucket_centralized_queue/token_bucket_centralized_queue.h"
+#include "algorithms/leaky_bucket_centralized/leaky_bucket_centralized.h"
+#include "algorithms/leaky_bucket_centralized_set/leaky_bucket_centralized_set.h"
 #include <iostream>
 #include <memory>
 
@@ -38,15 +39,15 @@ int main() {
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
         // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
-        std::vector<TokenBucketSimple*> algorithms;
-        algorithms.push_back(new TokenBucketSimple(10, 1000));
+        std::vector<LeakyBucketCentralized*> algorithms;
+        algorithms.push_back(new LeakyBucketCentralized(10, 10));
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
         Server server(request_reader, retry_writer, &algorithm_pointers, logs_journal, 1);
         server.start();
 
-        WorkloadSinusoid workload(10, 400, 2500);
+        WorkloadSinusoid workload(10, 400, 1600);
         Sender sender(&workload, request_writer, retry_reader);
         sender.start_execution();
 

@@ -9,8 +9,11 @@ public:
     void add_request(Request& /*request*/) override {
     }
 
-    std::optional<Response> get_response() override {
-        return std::nullopt;
+    void update() override {
+    }
+
+    std::queue<Response>* get_responses() override {
+        return nullptr;
     }
 
     std::unique_ptr<Algorithm> clone() override {

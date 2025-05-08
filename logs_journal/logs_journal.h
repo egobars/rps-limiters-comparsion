@@ -27,7 +27,10 @@ public:
         logs_.push_back(std::move(log));
     }
     
-    const std::vector<LogLine>& get_logs() const {
+    const std::vector<LogLine>& get_logs() {
+        std::sort(logs_.begin(), logs_.end(), [](const LogLine& a, const LogLine& b) {
+            return a.timestamp < b.timestamp;
+        });
         return logs_;
     }
 
