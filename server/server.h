@@ -54,6 +54,29 @@ public:
         for (auto& worker : workers_) {
             worker->start();
         }
+        
+        // Флаг работы для потока чтения
+        reader_running_ = true;
+        
+        // Запускаем отдельный поток для чтения ответов от воркеров
+        reader_thread_ = std::make_unique<std::thread>([this]() {
+            while (reader_running_) {
+                for (auto& worker_reader : workers_readers_) {
+                    auto response = worker_reader.read();
+                    if (response) {
+                        ++requests_processed_;
+                        auto val = response.value();
+                        LogLine log_line(val.timestamp(), response.value().request_timestamp(), val.is_allowed(), val.user(), val.id(), val.attempt());
+                        logs_journal_->add_log(std::move(log_line));
+                        if (val.is_retry()) {
+                            pipe_retry_writer_.write(Retry(val.id(), val.user(), val.attempt(), val.do_retry_timestamp()));
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Запускаем основной поток для чтения запросов от клиентов
         server_thread_ = std::make_unique<std::thread>([this]() {
             while (!no_more_requests_ || pipe_reader_.GetPipe()->GetSize() > 0 || requests_received_ != requests_processed_) {
                 auto request_from_client = pipe_reader_.read();
@@ -63,19 +86,6 @@ public:
                     auto request_to_worker = workers_writers_[worker_index];
                     request_to_worker.write(request_from_client.value());
                 }
-
-                for (auto& worker_reader : workers_readers_) {
-                    auto response = worker_reader.read();
-                    if (response) {
-                        ++requests_processed_;
-                        auto val = response.value();
-                        LogLine log_line(std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response.value().request_timestamp(), val.is_allowed(), val.user(), val.id(), val.attempt());
-                        logs_journal_->add_log(std::move(log_line));
-                        if (val.is_retry()) {
-                            pipe_retry_writer_.write(Retry(val.id(), val.user(), val.attempt(), val.do_retry_timestamp()));
-                        }
-                    }
-                }
             }
         });
     }
@@ -84,6 +94,12 @@ public:
         no_more_requests_ = true;
         if (server_thread_ && server_thread_->joinable()) {
             server_thread_->join();
+        }
+        
+        // Останавливаем поток чтения и ждем его завершения
+        reader_running_ = false;
+        if (reader_thread_ && reader_thread_->joinable()) {
+            reader_thread_->join();
         }
     }
 
@@ -100,7 +116,9 @@ private:
     std::vector<Algorithm*>* algorithms_;
     std::shared_ptr<LogsJournal> logs_journal_;
     bool no_more_requests_ = false;
+    bool reader_running_ = false;
     std::unique_ptr<std::thread> server_thread_;
+    std::unique_ptr<std::thread> reader_thread_;
     std::vector<std::unique_ptr<Worker>> workers_;
     std::vector<Pipe<Request>::PipeWriter> workers_writers_;
     std::vector<Pipe<Response>::PipeReader> workers_readers_;

@@ -48,35 +48,35 @@ public:
         worker_thread_ = std::make_unique<std::thread>([this]() {
             int i = 0;
             while (running_) {
-                algorithm_->update();
+                /*algorithm_->update();
                 auto responses = algorithm_->get_responses();
                 while (!responses->empty()) {
                     pipe_writer_.write(responses->front());
                     responses->pop();
-                }
+                }*/
                 auto request = pipe_reader_.read();
                 if (!request) {
                     continue;
                 }
                 algorithm_->add_request(request.value());
 
-                /*bool result = algorithm_->check_request(request.value());
+                bool result = algorithm_->check_request(request.value());
                 auto val = request.value();
                 if (result) {
                     Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
                     pipe_writer_.write(response);
                 } else {
                     if (val.attempt() == 0) {
-                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 500 + dist_(gen_));
+                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 700 + dist_(gen_));
                         pipe_writer_.write(response);
                     } else if (val.attempt() == 1) {
-                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1500 + dist_(gen_));
+                        Response response(val.id(), val.user(), val.timestamp(), result, true, val.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 2500 + dist_(gen_));
                         pipe_writer_.write(response);
                     } else {
                         Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
                         pipe_writer_.write(response);
                     }
-                }*/
+                }
             }
         });
     }

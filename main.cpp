@@ -11,11 +11,13 @@
 #include "metrics_aggregator/metrics_aggregator_infly_overflow/metrics_aggregator_infly_overflow.h"
 #include "metrics_aggregator/metrics_aggregator_delay/metrics_aggregator_delay.h"
 #include "metrics_aggregator/metrics_aggregator_user/metrics_aggregator_user.h"
-#include "algorithms/token_bucket_centralized/token_bucket_centralized.h"
+#include "algorithms/fixed_window/fixed_window.h"
 #include "algorithms/token_bucket_decentralized/token_bucket_decentralized.h"
 #include "algorithms/token_bucket_simple/token_bucket_simple.h"
 #include "algorithms/leaky_bucket_centralized/leaky_bucket_centralized.h"
 #include "algorithms/leaky_bucket_centralized_set/leaky_bucket_centralized_set.h"
+#include "algorithms/sliding_window_centralized/sliding_window_centralized.h"
+#include "algorithms/sliding_window_decentralized/sliding_window_decentralized.h"
 #include <iostream>
 #include <memory>
 
@@ -32,15 +34,15 @@ int main() {
         auto retry_reader = retry_pipe->GetReader();
 
         // Инициализируем компоненты
-        /*std::vector<TokenBucketDecentralized*> algorithms;
-        for (size_t i = 0; i < 2; ++i) {
-            algorithms.push_back(new TokenBucketDecentralized(1100, 1100, i, &algorithms, 2));
+        /*std::vector<SlidingWindowDecentralized*> algorithms;
+        for (size_t i = 0; i < 5; ++i) {
+            algorithms.push_back(new SlidingWindowDecentralized(100, i, &algorithms, 5));
         }
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
         // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
-        std::vector<LeakyBucketCentralized*> algorithms;
-        algorithms.push_back(new LeakyBucketCentralized(10, 10));
+        std::vector<FixedWindow*> algorithms;
+        algorithms.push_back(new FixedWindow(10, 10));
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
