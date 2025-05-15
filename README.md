@@ -1,2 +1,3 @@
-sudo apt-get install libmicrohttpd-dev
-sudo apt-get install curl?
+# Тестовый стенд
+
+Позволяет высчитывать метрики для различных алгоритмов RPS limiter на разных сценариях.
