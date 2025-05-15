@@ -39,6 +39,7 @@ public:
             auto response = responses_.front();
             response.set_is_allowed(true);
             response.set_is_retry(false);
+            response.set_timestamp(std::chrono::system_clock::now().time_since_epoch().count() / 1000000);
             responses_to_process_.push(response);
             responses_.pop();
             ++processed_requests;
@@ -59,7 +60,7 @@ private:
             Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 700);
             return response;
         } else if (request.attempt() == 1) {
-            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1900);
+            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 2500);
             return response;
         } else {
             Response response(request.id(), request.user(), request.timestamp(), false, false, request.attempt(), 0);

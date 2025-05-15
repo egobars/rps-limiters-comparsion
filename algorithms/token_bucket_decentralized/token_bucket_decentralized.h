@@ -71,23 +71,14 @@ private:
     void refill_bucket() {
         dist = std::uniform_int_distribution<size_t>(0, algorithms->size() - 1);
 
-        // if (std::chrono::system_clock::now().time_since_epoch().count() / 1000000 - last_sync_time > 10) {
+        if (std::chrono::system_clock::now().time_since_epoch().count() / 1000000 - last_sync_time > 10) {
             double sum_tokens = 0;
-            // double sum_limits = 0;
             for (size_t i = 0; i < 5; ++i) {
-                /*size_t id_to_update = dist(gen); 
-                if (id_to_update == id) {
-                    continue;
-                }
-                auto delta = algorithms->at(id_to_update)->delta_by_nodes[id];
-                algorithms->at(id_to_update)->delta_by_nodes[id] = 0;
-                current_tokens_ += delta;*/
                 sum_tokens += algorithms->at(i)->delta_by_nodes[i];
-                // sum_limits += algorithms->at(i)->limit_by_nodes[id];
             }
             current_tokens_ = sum_tokens;
             last_sync_time = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
-        // }
+        }
 
         long current_time = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
         if (current_time - last_refill_time > 10) {

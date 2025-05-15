@@ -89,10 +89,10 @@ private:
 
     PriorityResponse construct_response(Request& request) {
         if (request.attempt() == 0) {
-            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 700);
+            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 500);
             return PriorityResponse(2, std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response);
         } else if (request.attempt() == 1) {
-            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1900);
+            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1500);
             return PriorityResponse(1, std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response);
         } else {
             Response response(request.id(), request.user(), request.timestamp(), false, false, request.attempt(), 0);

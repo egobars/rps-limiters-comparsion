@@ -48,19 +48,19 @@ public:
         worker_thread_ = std::make_unique<std::thread>([this]() {
             int i = 0;
             while (running_) {
-                /*algorithm_->update();
+                algorithm_->update();
                 auto responses = algorithm_->get_responses();
                 while (!responses->empty()) {
                     pipe_writer_.write(responses->front());
                     responses->pop();
-                }*/
+                }
                 auto request = pipe_reader_.read();
                 if (!request) {
                     continue;
                 }
                 algorithm_->add_request(request.value());
 
-                bool result = algorithm_->check_request(request.value());
+                /*bool result = algorithm_->check_request(request.value());
                 auto val = request.value();
                 if (result) {
                     Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
@@ -76,7 +76,7 @@ public:
                         Response response(val.id(), val.user(), val.timestamp(), result, false, val.attempt(), 0);
                         pipe_writer_.write(response);
                     }
-                }
+                }*/
             }
         });
     }

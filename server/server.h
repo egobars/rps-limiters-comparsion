@@ -9,6 +9,7 @@
 #include <memory>
 #include <iostream>
 #include <random>
+#include <atomic>
 
 /* http server
 class Server;
@@ -55,10 +56,8 @@ public:
             worker->start();
         }
         
-        // Флаг работы для потока чтения
         reader_running_ = true;
         
-        // Запускаем отдельный поток для чтения ответов от воркеров
         reader_thread_ = std::make_unique<std::thread>([this]() {
             while (reader_running_) {
                 for (auto& worker_reader : workers_readers_) {
@@ -76,7 +75,6 @@ public:
             }
         });
         
-        // Запускаем основной поток для чтения запросов от клиентов
         server_thread_ = std::make_unique<std::thread>([this]() {
             while (!no_more_requests_ || pipe_reader_.GetPipe()->GetSize() > 0 || requests_received_ != requests_processed_) {
                 auto request_from_client = pipe_reader_.read();
@@ -96,7 +94,6 @@ public:
             server_thread_->join();
         }
         
-        // Останавливаем поток чтения и ждем его завершения
         reader_running_ = false;
         if (reader_thread_ && reader_thread_->joinable()) {
             reader_thread_->join();

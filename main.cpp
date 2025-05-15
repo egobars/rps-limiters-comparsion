@@ -24,7 +24,6 @@
 int main() {
     std::vector<std::shared_ptr<LogsJournal>> logs_journals;
     for (int i = 0; i < 10; ++i) {
-        // Создаем общие каналы передачи данных
         auto request_pipe = std::make_shared<Pipe<Request>>();
         auto retry_pipe = std::make_shared<Pipe<Retry>>();
         
@@ -33,20 +32,20 @@ int main() {
         auto retry_writer = retry_pipe->GetWriter();
         auto retry_reader = retry_pipe->GetReader();
 
-        // Инициализируем компоненты
-        /*std::vector<SlidingWindowDecentralized*> algorithms;
-        for (size_t i = 0; i < 5; ++i) {
-            algorithms.push_back(new SlidingWindowDecentralized(100, i, &algorithms, 5));
+        std::vector<LeakyBucketCentralizedSet*> algorithms;
+        for (size_t i = 0; i < 4; ++i) {
+            algorithms.push_back(new LeakyBucketCentralizedSet(10, 2));
         }
-        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
+        algorithms.push_back(new LeakyBucketCentralizedSet(10, 3));
+        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
         // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
-        std::vector<FixedWindow*> algorithms;
-        algorithms.push_back(new FixedWindow(10, 10));
-        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
+        /*std::vector<LeakyBucketCentralizedSet*> algorithms;
+        algorithms.push_back(new LeakyBucketCentralizedSet(10, 10));
+        std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
-        Server server(request_reader, retry_writer, &algorithm_pointers, logs_journal, 1);
+        Server server(request_reader, retry_writer, &algorithm_pointers, logs_journal, 5);
         server.start();
 
         WorkloadSinusoid workload(10, 400, 1600);

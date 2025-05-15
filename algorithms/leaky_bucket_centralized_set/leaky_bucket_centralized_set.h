@@ -12,8 +12,10 @@ public:
     LeakyBucketCentralizedSet(size_t time_delta, size_t requests_to_process)
         : time_delta_(time_delta)
         , requests_to_process_(requests_to_process)
-        , last_check_time_(std::chrono::system_clock::now().time_since_epoch().count() / 1000000)
-    {}
+    {
+        last_check_time_ = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
+        last_check_time_ = last_check_time_ - last_check_time_ % time_delta_;
+    }
 
     bool check_request(Request& /*request*/) override {
         return false;
@@ -21,7 +23,7 @@ public:
 
     void add_request(Request& request) override {
         PriorityResponse priority_response = construct_response(request);
-        if (responses_.size() > 50) {
+        if (responses_.size() > 10) {
             auto last_response = responses_.end();
             --last_response;
             if (priority_response < *last_response) {
@@ -41,6 +43,7 @@ public:
             return;
         }
         last_check_time_ = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
+        last_check_time_ = last_check_time_ - last_check_time_ % time_delta_;
         int processed_requests = 0;
         while (!responses_.empty()) {
             if (processed_requests == requests_to_process_) {
@@ -50,6 +53,7 @@ public:
             Response temp_response = response->response;
             temp_response.set_is_allowed(true);
             temp_response.set_is_retry(false);
+            temp_response.set_timestamp(std::chrono::system_clock::now().time_since_epoch().count() / 1000000);
             responses_to_process_.push(temp_response);
             responses_.erase(response);
 
@@ -94,7 +98,7 @@ private:
             Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 700);
             return PriorityResponse(2, std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response);
         } else if (request.attempt() == 1) {
-            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 1900);
+            Response response(request.id(), request.user(), request.timestamp(), false, true, request.attempt(), std::chrono::system_clock::now().time_since_epoch().count() / 1000000 + 2500);
             return PriorityResponse(1, std::chrono::system_clock::now().time_since_epoch().count() / 1000000, response);
         } else {
             Response response(request.id(), request.user(), request.timestamp(), false, false, request.attempt(), 0);

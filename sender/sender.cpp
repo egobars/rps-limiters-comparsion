@@ -40,10 +40,8 @@ void Sender::send_request() {
 */
 
 void Sender::start_execution() {
-    // Устанавливаем флаг запуска
     is_running_ = true;
     
-    // Запускаем поток для проверки повторных запросов
     retries_thread_ = std::thread(&Sender::check_retries, this);
     
     std::vector<uint> requests_per_100ms = workload_->generate_requests_per_100ms();
@@ -67,10 +65,8 @@ void Sender::start_execution() {
         }
     }
     
-    // Останавливаем поток проверки повторов
     is_running_ = false;
     
-    // Ожидаем завершения потока
     if (retries_thread_.joinable()) {
         retries_thread_.join();
     }
