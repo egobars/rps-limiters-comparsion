@@ -32,16 +32,15 @@ int main() {
         auto retry_writer = retry_pipe->GetWriter();
         auto retry_reader = retry_pipe->GetReader();
 
-        std::vector<LeakyBucketCentralizedSet*> algorithms;
-        for (size_t i = 0; i < 4; ++i) {
-            algorithms.push_back(new LeakyBucketCentralizedSet(10, 2));
+        std::vector<SlidingWindowDecentralized*> algorithms;
+        for (size_t i = 0; i < 5; ++i) {
+            algorithms.push_back(new SlidingWindowDecentralized(110, i, &algorithms, 5));
         }
-        algorithms.push_back(new LeakyBucketCentralizedSet(10, 3));
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());
         // std::unique_ptr<Algorithm> algorithm = std::make_unique<TokenBucketCentralized>(100, 100);
 
-        /*std::vector<LeakyBucketCentralizedSet*> algorithms;
-        algorithms.push_back(new LeakyBucketCentralizedSet(10, 10));
+        /*std::vector<SlidingWindowCentralized*> algorithms;
+        algorithms.push_back(new SlidingWindowCentralized(100));
         std::vector<Algorithm*> algorithm_pointers(algorithms.begin(), algorithms.end());*/
 
         std::shared_ptr<LogsJournal> logs_journal = std::make_shared<LogsJournal>();
